@@ -1,6 +1,20 @@
+<input id="email" type="text" placeholder="username" />
+<input id="password" type="password" placeholder="password" />
 <button id="sign-in-buttion">Sign in</button>
 
+<script src="https://www.gstatic.com/firebasejs/5.8.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.8.2/firebase-auth.js"></script>
 <script>
+const config = {
+  apiKey: 'AIzaSyB01Rediz1OxOlIRBr5t2WxQpDrxaxEcVU',
+  authDomain: 'newagent-dc3d1.firebaseapp.com',
+  databaseURL: 'https://newagent-dc3d1.firebaseio.com',
+  projectId: 'newagent-dc3d1',
+  storageBucket: 'newagent-dc3d1.appspot.com',
+  messagingSenderId: '776415085282'
+};
+firebase.initializeApp(config);
+
 const button = window.document.getElementById('sign-in-buttion');
 
 const url = new URL(window.location.href);
@@ -9,10 +23,36 @@ const redirectUri = url.searchParams.get('redirect_uri');
 const state = url.searchParams.get('state');
 const scope = url.searchParams.get('scope');
 const projectId = 'newagent-dc3d1';
-const code = 'this-is-a-debug-code-for-2';
-console.log({ url, clientId, redirectUri, state, scope, code });
+console.log({ url, clientId, redirectUri, state, scope });
 
-button.addEventListener('click', () => {
-  window.location.href = `https://oauth-redirect.googleusercontent.com/r/${projectId}?code=${code}&state=${state}`;
+if (clientId !== 'ehgoogle') {
+  throw new Error('clientId do not match!');
+}
+
+firebase.auth().onAuthStateChanged(async user => {
+  if (user) {
+    console.log('user: ', user);
+    const idToken = await user.getIdToken();
+    console.log('idToken: ', idToken);
+    const customToken = await fetch('https://us-central1-newagent-dc3d1.cloudfunctions.net/fn/customtoken', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        idToken
+      })
+    }).then(r => r.ok ? r.json() : Promise.reject(new Error('No!')));
+    // console.log('going to: ', `${redirectUri}?code=${customToken.token}&state=${state}`)
+    window.location.href = `${redirectUri}?code=${customToken.token}&state=${state}`;
+  }
+});
+
+button.addEventListener('click', async () => {
+  const email = window.document.getElementById('email').value;
+  const password = window.document.getElementById('password').value;
+  await firebase.auth().signInWithEmailAndPassword(email, password).catch(error => {
+    console.log(error);
+  });  
 });
 </script>

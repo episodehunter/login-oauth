@@ -1,0 +1,18 @@
+<button id="sign-in-buttion">Sign in</button>
+
+<script>
+const button = window.document.getElementById('sign-in-buttion');
+
+const url = new URL(window.location.href);
+const clientId = url.searchParams.get('client_id');
+const redirectUri = url.searchParams.get('redirect_uri');
+const state = url.searchParams.get('state');
+const scope = url.searchParams.get('scope');
+const projectId = 'newagent-dc3d1';
+const code = 'this-is-a-debug-code-for-2';
+console.log({ url, clientId, redirectUri, state, scope, code });
+
+button.addEventListener('click', () => {
+  window.location.href = `https://oauth-redirect.googleusercontent.com/r/${projectId}?code=${code}&state=${state}`;
+});
+</script>
